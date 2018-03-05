@@ -5,8 +5,9 @@
 #' desembolso en periodos de más de un mes con el uso del parámetro "periodo".
 #' Se asume que el último periodo de análisis disponible es un mes anterior a la fecha
 #' en que se hace la consulta.
-#' Además del marco de datos con información de cosechas, se genera una tabla
-#' con el detalle de desembolsos manteniendo la misma estructura.
+#' Además del marco de datos con información de cosechas, se generan los data.frame "dfMontoDesemSegmento"
+#' y "dfNumCreDesemSegmento" con el detalle de desembolsos y número de créditos desembolsados
+#' manteniendo la misma estructura.
 #' @param handle integer: Objeto de clase RODBC que establece la conexión al servidor.
 #' @param dfBase data.frame: Marco de datos conteniendo como mínimo el código de crédito (NUM_CRE) y el segmento de análisis.
 #' @param cFecIni character: Fecha de inicio del periodo total de análisis.
@@ -44,6 +45,7 @@ mxMoraCosechaSegmentoMadurez <- function(handle, dfBase,  cFecIni, cFecFin,
 
   dfCosecha <- data.frame()
   dfMontoDesemSegmento <- data.frame()
+  dfNumCreDesemSegmento <- data.frame()
 
   vSegmento_final <- NA
   for(i in 1:length(vSegmento)){
@@ -63,6 +65,9 @@ mxMoraCosechaSegmentoMadurez <- function(handle, dfBase,  cFecIni, cFecFin,
       # Construye tabla de desembolsos por segmentos
       dfMontoDesemSegmento <- bind_rows(dfMontoDesemSegmento,dfMontoDesem)
 
+      # Construye tabla de número de créditos desembolsados por segmento
+      dfNumCreDesemSegmento <- bind_rows(dfNumCreDesemSegmento,dfNumCreDesem)
+
       # Extrae la madurez requerida de la cosecha por cada segmento
       vSegmento_final[i] <- vSegmento[i]
 
@@ -79,8 +84,16 @@ mxMoraCosechaSegmentoMadurez <- function(handle, dfBase,  cFecIni, cFecFin,
   dfMontoDesemSegmento <- bind_cols(select(cSegmento, .data = dfCosecha),
                                     dfMontoDesemSegmento)
 
+  dfNumCreDesemSegmento <- bind_cols(select(cSegmento, .data = dfCosecha),
+                                     dfNumCreDesemSegmento)
+
+  # Agrega tablas de desembolsos y número de créditos desembolsados al ambiente global
   assign(x = 'dfMontoDesemSegmento',
          value = dfMontoDesemSegmento,
+         envir=.GlobalEnv)
+
+  assign(x = 'dfNumCreDesemSegmento',
+         value = dfNumCreDesemSegmento,
          envir=.GlobalEnv)
 
   return(dfCosecha)

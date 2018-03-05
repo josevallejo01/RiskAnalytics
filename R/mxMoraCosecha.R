@@ -5,8 +5,9 @@
 #' desembolso en periodos de más de un mes con el uso del parámetro "periodo".
 #' Se asume que el último periodo de análisis disponible es un mes anterior a la fecha
 #' en que se hace la consulta.
-#' Además del marco de datos con información de cosechas, se genera una tabla
-#' con el detalle de desembolsos manteniendo la misma estructura.
+#' Además del marco de datos con información de cosechas, se generan los data.frame "dfMontoDesem"
+#' y "dfNumCreDesem" con el detalle de desembolsos y número de créditos desembolsados
+#' manteniendo la misma estructura.
 #' @param handle integer: Objeto de clase RODBC que establece la conexión al servidor.
 #' @param vNumCre vector: Conjunto de códigos de crédito para el cálculo de la mora ajustada por cosechas.
 #' @param cFecIni character: Fecha de inicio del periodo total de análisis.
@@ -28,11 +29,6 @@
 
 mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1500,
                           bExportTab = FALSE, cNomTab){
-  # Fecha de modificacion: 2018-02-22
-  # Responsable de modificacion: Jose Vallejo
-  # Descripcion del cambio: Se corrige el cálculo de la tabla de desembolsos cuando el
-  # periodo es de 1.
-  # Versión de sumision: 0.4
 
   tab_gen <- mxQueryBatch(handle = handle,vcListaRef = vNumCre,
                           cNombreRef = "mhis.num_cre",
@@ -72,7 +68,7 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
     select(num_cre, nYYYYMMDes, mon_des) %>%
     distinct() %>%
     group_by(nYYYYMMDes) %>%
-    summarise(nMonDes = sum(mon_des))
+    summarise(nMonDes = sum(mon_des), nNumCre = n_distinct(num_cre))
 
 
   datseq <- format(seq(as.Date(cFecIni),
@@ -137,8 +133,12 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
       # Crea tabla de desembolsos por segmento
       vMontoDesem <- vector()
 
+      # Crea tabla de número de créditos por segmento
+      vNumCreDesem <- vector()
+
       for(j in 1:(dim(cosecha_aj_mes)[2]/periodo)){
         vMontoDesem[j] <- sum(desem_mes$nMonDes[(periodo*j-periodo+1):(periodo*j)])
+        vNumCreDesem[j] <- sum(desem_mes$nNumCre[(periodo*j-periodo+1):(periodo*j)])
       }
 
       # Multiplicación cruzada de matrices para ponderar mora ajustada en agrupaciones periodicas
@@ -159,6 +159,7 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
 
     cosecha_aj <- data.frame(cosecha_aj, stringsAsFactors = FALSE)
     dfMontoDesem <- data.frame(t(vMontoDesem), stringsAsFactors = FALSE)
+    dfNumCreDesem <- data.frame(t(vNumCreDesem), stringsAsFactors = FALSE)
 
     # Da nombre a las columnas
     for(i in 1:(length(temp$nYYYYMMDes)%/%periodo)){
@@ -170,6 +171,9 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
 
     colnames(dfMontoDesem) <- colnames(cosecha_aj)
     row.names(dfMontoDesem) <- "nMonDes"
+
+    colnames(dfNumCreDesem) <- colnames(cosecha_aj)
+    row.names(dfNumCreDesem) <- "nNumCreDes"
 
     # Quita el mes 0 de desembolso
     cosecha_aj[1,] <- NA
@@ -204,6 +208,11 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
     dfMontoDesem <- data.frame(t(desem_mes$nMonDes), stringsAsFactors = FALSE)
     colnames(dfMontoDesem) <- colnames(cosecha_aj)[-1]
     row.names(dfMontoDesem) <- "nMonDes"
+
+    # Ajuste sobre tabla de número de créditos desembolsados
+    dfNumCreDesem <- data.frame(t(desem_mes$nNumCre), stringsAsFactors = FALSE)
+    colnames(dfNumCreDesem) <- colnames(cosecha_aj)[-1]
+    row.names(dfNumCreDesem) <- "nNumCreDesem"
   }
 
   if(bExportTab == TRUE){
@@ -228,6 +237,10 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
 
   assign(x = 'dfMontoDesem',
          value = dfMontoDesem,
+         envir=.GlobalEnv)
+
+  assign(x = 'dfNumCreDesem',
+         value = dfNumCreDesem,
          envir=.GlobalEnv)
 
   return(cosecha_aj)
