@@ -86,6 +86,9 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
     desem_mes <- desem_mes %>% arrange(nYYYYMMDes)
   }
 
+  # Reemplaza los valores NA por 0 en la tabla de desembolsos
+  desem_mes[is.na(desem_mes)] <- 0
+
   # Crea tabla consolidada mensual de mora ajustada
   cosecha_aj_mes <- tab_gen %>%
     distinct() %>% # Elimina duplicados
@@ -144,8 +147,12 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
       # Multiplicación cruzada de matrices para ponderar mora ajustada en agrupaciones periodicas
       for(i in 1:(dim(cosecha_aj_mes)[1]- periodo + 1)){
         for(j in 1:(dim(cosecha_aj_mes)[2]/periodo)){
-          # Controla que los calculos se enmarquen en lo posible
-          if(i > (dim(cosecha_aj)[1] + periodo - periodo*(j))){cosecha_aj[i,j] <- NA }
+          if(
+            # Controla que los calculos se enmarquen en lo posible
+            i > (dim(cosecha_aj)[1] + periodo - periodo*(j)) ||
+            # Si en uno de los meses que conforma el segmento no hubo desembolsos, no se debe hacer el cálculo
+            0 %in% desem_mes$nMonDes[(periodo*j-periodo+1):(periodo*j)]
+            ){cosecha_aj[i,j] <- NA }
           else{
             # Se reemplazan NA con 0 para no perder informacion de mora cosecha
             cosecha_aj[i,j] <- as.numeric(crossprod(replace(cosecha_aj_mes[i,(periodo*j-periodo+1):(periodo*j)],
