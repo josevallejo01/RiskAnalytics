@@ -79,7 +79,7 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
   meses_ausentes <- datseq[!(datseq %in% desem_mes$nYYYYMMDes)]
 
   if(!(identical(character(0), meses_ausentes))){
-    desem_mes <- rbind(desem_mes,
+    desem_mes <- bind_rows(desem_mes,
                        data.frame(nYYYYMMDes = meses_ausentes, nMonDes = 0)
     )
 
