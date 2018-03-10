@@ -116,6 +116,17 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
 
   cosecha_aj_mes <- t(as.matrix(cosecha_aj_mes[,2:dim(cosecha_aj_mes)[2]]))
 
+  # Se agregan filas si no se cuenta con data hasta el final de la última madurez disponible
+  if((interval(start = as.Date(cFecIni),
+               end = floor_date(Sys.Date(),
+                                "month"))%/%months(1)-periodo+1) > nrow(cosecha_aj_mes)){
+    cosecha_aj_mes <- rbind(cosecha_aj_mes,
+                            matrix(data = NA,
+                                   nrow = (interval(start = as.Date(cFecIni),
+                                                    end = floor_date(Sys.Date(), "month"))%/%months(1)-periodo+1)-nrow(cosecha_aj_mes),
+                                   ncol = ncol(cosecha_aj_mes)))
+  }
+
   # Tratamiento cuando el periodo es mayor a 1
   if(periodo > 1){
     # Comprueba si existen segmentos insuficientes
