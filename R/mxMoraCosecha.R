@@ -196,18 +196,16 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
     # Quita el mes 0 de desembolso
     cosecha_aj[1,] <- NA
 
-    if (ncol(cosecha_aj) == 1) {
-      # para ncol == 1 se usa este metodo ya que conserva la estructura df
-      cosecha_aj <- na.omit(cosecha_aj)
-    } else {
-      cosecha_aj <- cosecha_aj[apply(cosecha_aj,1,function(x)any(!is.na(x))),]
+    # Quita todas las files que no contengan ni siquiera un valor no NA
+    cosecha_aj <- cosecha_aj[apply(cosecha_aj,1,function(x)any(!is.na(x))),]
 
-      # Selecciona solo filas o columnas que tengan por lo menos un elemento no NA
-      keep.cols = which(apply(!is.na(cosecha_aj), 2, any))
-      keep.rows = which(apply(!is.na(cosecha_aj), 1, any))
+    # Selecciona solo filas o columnas que tengan por lo menos un elemento no NA
+    keep.cols = which(apply(!is.na(cosecha_aj), 2, any))
+    keep.rows = which(apply(!is.na(cosecha_aj), 1, any))
 
-      cosecha_aj = cosecha_aj[keep.rows,keep.cols]
-    }
+    cosecha_aj = select(cosecha_aj, keep.cols)
+    cosecha_aj = slice(cosecha_aj, keep.rows)
+
 
     temp2 <- data.frame(paste0("",seq(1:dim(cosecha_aj)[1])), stringsAsFactors = FALSE)
     cosecha_aj <- cbind(temp2, cosecha_aj)
