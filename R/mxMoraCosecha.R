@@ -194,7 +194,7 @@ mxMoraCosecha <- function(handle, vNumCre, cFecIni, cFecFin,  periodo, batch = 1
     row.names(dfNumCreDesem) <- "nNumCreDes"
 
     # Quita el mes 0 de desembolso
-    cosecha_aj[1,] <- NA
+    cosecha_aj <-  slice(cosecha_aj, 2:nrow(cosecha_aj))
 
     # Quita todas las files que no contengan ni siquiera un valor no NA
     cosecha_aj <- cosecha_aj[apply(cosecha_aj,1,function(x)any(!is.na(x))),]
