@@ -53,7 +53,8 @@ mxMoraCosechaSegmentoMadurez <- function(handle, dfBase,  cFecIni, cFecFin,
 
   for(i in 1:nrow(tabSegmento)){
     # Selecciona las filas que cumplen con el segmento i
-    dfNumCre <- dfSegmento[dfSegmento[,vSegmento] == t(tabSegmento[i,-ncol(tabSegmento)]),]
+    dfNumCre <- inner_join(dfSegmento, tabSegmento[i,-ncol(tabSegmento)],
+                           by = colnames(tabSegmento[i,-ncol(tabSegmento)]))
 
     dfNumCre <- na.omit(dfNumCre)
     # Maneja errores cuando la función trae data vacía
