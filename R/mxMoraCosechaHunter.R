@@ -177,11 +177,11 @@ mxMoraCosechaHunter <- function(handle, dfBase, cFecIni, cFecFin,
   
   
   assign(x = 'dfMontoDesemSegmentos',
-         value = dfValid,
+         value = dfMontoDesemSegmentos,
          envir=.GlobalEnv)
   
   assign(x = 'dfNumCreDesemSegmentos',
-         value = dfValid,
+         value = dfNumCreDesemSegmentos,
          envir=.GlobalEnv)
   
   assign(x = 'dfValid',
