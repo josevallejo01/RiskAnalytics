@@ -126,7 +126,7 @@ mxMoraCosechaHunter <- function(handle, dfBase, cFecIni, cFecFin,
   )
 
   # Da formato a la matriz de validación
-  if(nNumPerTol == nOrder){
+  if(is.vector(p)){
     p[is.na(p)] <- FALSE
     dfValid <- bind_cols(dfSegmentos[,1:(length(vSegmento)+1)],data.frame(X1 = p))
     dfValid <- dfValid[p,]
